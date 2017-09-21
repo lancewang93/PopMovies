@@ -42,7 +42,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     private MainAdapter mMainAdapter;
     private List<Movie> mMovieList;
 
-    private SwipeRefreshLayout mMainRefrsh;
+    private SwipeRefreshLayout mMainRefresh;
     private TextView mMainErrorTextView;
     private ContentLoadingProgressBar mMainLoading;
 
@@ -60,10 +60,10 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         mMainErrorTextView = view.findViewById(R.id.tv_main_error);
         mMainLoading = view.findViewById(R.id.pb_main_loading);
-        mMainRefrsh = view.findViewById(R.id.swipe_refresh);
+        mMainRefresh = view.findViewById(R.id.swipe_refresh);
 
-        mMainRefrsh.setColorSchemeResources(R.color.colorPrimary);
-        mMainRefrsh.setOnRefreshListener(this);
+        mMainRefresh.setColorSchemeResources(R.color.colorPrimary);
+        mMainRefresh.setOnRefreshListener(this);
 
         mMainRecyclerView = view.findViewById(R.id.rcv_main);
         LinearLayoutManager layoutManager = new GridLayoutManager(getContext(), 2);
@@ -100,9 +100,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         mMainRecyclerView.setVisibility(View.INVISIBLE);
         mMainLoading.setVisibility(View.VISIBLE);
         if (i == 0) {
-            return new MainLoader(getContext(), "popular");
+            return new MainLoader(getContext(), getString(R.string.loader_popular));
         } else if (i == 1) {
-            return new MainLoader(getContext(), "top_rated");
+            return new MainLoader(getContext(), getString(R.string.loader_top_rated));
         }
         return null;
     }
@@ -178,6 +178,6 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onRefresh() {
         initData();
-        mMainRefrsh.setRefreshing(false);
+        mMainRefresh.setRefreshing(false);
     }
 }

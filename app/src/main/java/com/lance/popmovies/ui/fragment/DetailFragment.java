@@ -4,10 +4,14 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.ShareCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -50,6 +54,7 @@ public class DetailFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        setHasOptionsMenu(true);
         mMovie = getArguments().getParcelable(ARG_MOVIE);
     }
 
@@ -112,5 +117,37 @@ public class DetailFragment extends Fragment {
         mReleaseDateTextView.setText(mMovie.getRelease_date());
         mVoteAverageTextView.setText(String.format("%2.1f", mMovie.getVote_average()));
         mOverviewTextView.setText(mMovie.getOverview());
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.detail, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_share:
+                share();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void share() {
+        String mineType = "text/plain";
+        String title = getString(R.string.share_title);
+        ShareCompat.IntentBuilder
+                .from(getActivity())
+                .setType(mineType)
+                .setText(getString(R.string.share_from)
+                        + mMovie.getTitle()
+                        + getString(R.string.share_release_date)
+                        + mMovie.getRelease_date()
+                        + getString(R.string.share_overview)
+                        + mMovie.getOverview())
+                .setChooserTitle(title)
+                .startChooser();
     }
 }
