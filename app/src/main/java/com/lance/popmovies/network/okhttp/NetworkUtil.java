@@ -1,11 +1,15 @@
 package com.lance.popmovies.network.okhttp;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+
 import java.io.IOException;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.content.Context.CONNECTIVITY_SERVICE;
 import static com.lance.popmovies.Key.TheMovieDbKey;
 
 /**
@@ -33,5 +37,12 @@ public class NetworkUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean isNetworkAvailableAndConnected(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
+        boolean isNetworkAvailable = cm.getActiveNetworkInfo() != null;
+        boolean isNetworkConnected = isNetworkAvailable && cm.getActiveNetworkInfo().isConnected();
+        return isNetworkConnected;
     }
 }

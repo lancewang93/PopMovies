@@ -2,6 +2,7 @@
     <string name="app_name">PopMovies</string>
     <string name="action_popular">Popular Movies</string>
     <string name="action_top_rated">Top Rated Movies</string>
+    <string name="fail_load">Failed to load, Please try again</string>
 
     <string-array name="sort_order">
         <item>Popular Movies</item>

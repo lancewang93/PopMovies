@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.lance.popmovies.R;
 import com.lance.popmovies.db.Movie;
+import com.lance.popmovies.network.okhttp.NetworkUtil;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -33,6 +34,7 @@ public class DetailFragment extends Fragment {
     private TextView mReleaseDateTextView;
     private TextView mVoteAverageTextView;
     private TextView mOverviewTextView;
+    private TextView mDetailErrorTextView;
 
     private Movie mMovie;
 
@@ -48,7 +50,6 @@ public class DetailFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
         mMovie = getArguments().getParcelable(ARG_MOVIE);
     }
 
@@ -64,6 +65,7 @@ public class DetailFragment extends Fragment {
         mReleaseDateTextView = view.findViewById(R.id.tv_detail_release_date);
         mVoteAverageTextView = view.findViewById(R.id.tv_detail_vote_average);
         mOverviewTextView = view.findViewById(R.id.tv_detail_overview);
+        mDetailErrorTextView = view.findViewById(R.id.tv_detail_error);
 
         return view;
     }
@@ -71,8 +73,22 @@ public class DetailFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initCollapsingToolBar();
-        initDetail();
+        if (NetworkUtil.isNetworkAvailableAndConnected(getContext())) {
+            initCollapsingToolBar();
+            initDetail();
+        } else {
+            showErrorView();
+        }
+    }
+
+    private void showErrorView() {
+        mTitleTextView.setVisibility(View.INVISIBLE);
+        mBackdropImageView.setVisibility(View.INVISIBLE);
+        mPosterImageView.setVisibility(View.INVISIBLE);
+        mReleaseDateTextView.setVisibility(View.INVISIBLE);
+        mVoteAverageTextView.setVisibility(View.INVISIBLE);
+        mOverviewTextView.setVisibility(View.INVISIBLE);
+        mDetailErrorTextView.setVisibility(View.VISIBLE);
     }
 
     private void initCollapsingToolBar() {
