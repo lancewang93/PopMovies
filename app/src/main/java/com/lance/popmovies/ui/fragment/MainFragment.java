@@ -170,7 +170,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
-//        Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
+        //单页面
+        //Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
         Intent intent = DetailPagerActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
         startActivity(intent);
     }
