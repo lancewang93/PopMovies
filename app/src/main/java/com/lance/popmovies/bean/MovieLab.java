@@ -1,4 +1,4 @@
-package com.lance.popmovies.db;
+package com.lance.popmovies.bean;
 
 import android.content.Context;
 

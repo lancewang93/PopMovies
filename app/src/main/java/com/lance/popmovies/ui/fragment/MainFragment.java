@@ -2,6 +2,7 @@ package com.lance.popmovies.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -23,12 +24,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.lance.popmovies.R;
-import com.lance.popmovies.db.Movie;
-import com.lance.popmovies.db.MovieLab;
-import com.lance.popmovies.network.okhttp.NetworkUtil;
-import com.lance.popmovies.ui.activity.DetailPagerActivity;
+import com.lance.popmovies.bean.Movie;
+import com.lance.popmovies.ui.activity.DetailActivity;
 import com.lance.popmovies.ui.adapter.MainAdapter;
 import com.lance.popmovies.utils.MainLoader;
+import com.lance.popmovies.utils.NetworkUtils;
+import com.lance.popmovies.utils.SharedPreferenceUtils;
 
 import java.util.List;
 
@@ -36,14 +37,17 @@ import java.util.List;
  * Created by Administrator on 2017/9/12 0012.
  */
 
-public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Void>, MainAdapter.ListItemClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class MainFragment extends Fragment implements
+        LoaderManager.LoaderCallbacks<List<Movie>>,
+        MainAdapter.ListItemClickListener,
+        SwipeRefreshLayout.OnRefreshListener {
 
     private RecyclerView mMainRecyclerView;
     private MainAdapter mMainAdapter;
     private List<Movie> mMovieList;
 
     private SwipeRefreshLayout mMainRefresh;
-    private TextView mMainErrorTextView;
+    private TextView mErrorTextView;
     private ContentLoadingProgressBar mMainLoading;
 
     @Override
@@ -56,9 +60,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        mMainErrorTextView = view.findViewById(R.id.tv_main_error);
+        mErrorTextView = view.findViewById(R.id.tv_error);
         mMainLoading = view.findViewById(R.id.pb_main_loading);
         mMainRefresh = view.findViewById(R.id.swipe_refresh);
 
@@ -72,45 +76,45 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         mMainAdapter = new MainAdapter(view.getContext(), this);
         mMainRecyclerView.setAdapter(mMainAdapter);
 
-        initData();
+        int requestType = SharedPreferenceUtils.getMainSortBy(view.getContext());
+        initData(requestType);
         return view;
     }
 
-    private void initData() {
-        if (NetworkUtil.isNetworkAvailableAndConnected(getContext())) {
+    private void initData(int requestType) {
+        if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
             showSuccessView();
-            getLoaderManager().initLoader(0, null, this);
+//            if (requestType == 2) {
+                getLoaderManager().restartLoader(requestType, null, this);
+//            } else {
+//                getLoaderManager().initLoader(requestType, null, this);
+//            }
         } else {
             showErrorView();
         }
     }
 
     private void showSuccessView() {
-        mMainErrorTextView.setVisibility(View.INVISIBLE);
+        mErrorTextView.setVisibility(View.INVISIBLE);
         mMainRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void showErrorView() {
         mMainRecyclerView.setVisibility(View.INVISIBLE);
-        mMainErrorTextView.setVisibility(View.VISIBLE);
+        mErrorTextView.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public Loader onCreateLoader(int i, Bundle args) {
+    public Loader onCreateLoader(int requestType, Bundle args) {
         mMainRecyclerView.setVisibility(View.INVISIBLE);
         mMainLoading.setVisibility(View.VISIBLE);
-        if (i == 0) {
-            return new MainLoader(getContext(), getString(R.string.loader_popular));
-        } else if (i == 1) {
-            return new MainLoader(getContext(), getString(R.string.loader_top_rated));
-        }
-        return null;
+        return new MainLoader(getContext(), requestType);
     }
 
     @Override
-    public void onLoadFinished(Loader<Void> loader, Void data) {
+    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> movies) {
         mMainLoading.setVisibility(View.INVISIBLE);
-        mMovieList = MovieLab.get(getContext()).getMovieList();
+        mMovieList = movies;
         if (mMovieList != null && !mMovieList.isEmpty()) {
             showSuccessView();
             mMainAdapter.refreshMovieList(mMovieList);
@@ -133,11 +137,13 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(), R.array.sort_order, android.R.layout.simple_spinner_dropdown_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        spinner.setSelection(0);
+        int requestType = SharedPreferenceUtils.getMainSortBy(getContext());
+        spinner.setSelection(requestType);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (NetworkUtil.isNetworkAvailableAndConnected(getContext())) {
+                SharedPreferenceUtils.setMainSortBy(view.getContext(), i);
+                if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
                     onSortOderChange(i);
                 } else {
                     showErrorView();
@@ -152,14 +158,12 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    private void onSortOderChange(int i) {
-        switch (i) {
-            case 0:
-                getLoaderManager().restartLoader(i, null, this);
-                break;
-            case 1:
-                getLoaderManager().restartLoader(i, null, this);
-                break;
+    private void onSortOderChange(int requestType) {
+        LoaderManager loaderManager = getActivity().getSupportLoaderManager();
+        if (loaderManager.getLoader(requestType) == null) {
+            loaderManager.initLoader(requestType, null, this);
+        } else {
+            loaderManager.restartLoader(requestType, null, this);
         }
     }
 
@@ -171,14 +175,16 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onListItemClick(int clickedItemIndex) {
         //单页面
-        //Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
-        Intent intent = DetailPagerActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
+        Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
+        //滑动页面
+        //Intent intent = DetailPagerActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
         startActivity(intent);
     }
 
     @Override
     public void onRefresh() {
-        initData();
+        int requestType = SharedPreferenceUtils.getMainSortBy(getContext());
+        initData(requestType);
         mMainRefresh.setRefreshing(false);
     }
 }

@@ -1,6 +1,6 @@
 package com.lance.popmovies.network.manager;
 
-import com.lance.popmovies.db.Movie;
+import com.lance.popmovies.bean.Movie;
 import com.lance.popmovies.network.service.TheMovieDbService;
 
 import java.util.List;

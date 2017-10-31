@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.lance.popmovies.R;
-import com.lance.popmovies.db.Movie;
+import com.lance.popmovies.bean.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

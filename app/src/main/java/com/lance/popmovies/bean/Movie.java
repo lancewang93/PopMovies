@@ -1,4 +1,4 @@
-package com.lance.popmovies.db;
+package com.lance.popmovies.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -42,39 +42,13 @@ public class Movie implements Parcelable {
     private String release_date;
     private List<Integer> genre_ids;
 
-    @Override
-    public int describeContents() {
-        return 0;
+    private int runTime;
+    private boolean favorite;
+    private List<Trailer> trailers;
+    private List<Review> reviews;
+
+    public Movie() {
     }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(vote_count);
-        parcel.writeInt(id);
-        parcel.writeByte((byte) (video ? 1 : 0));
-        parcel.writeDouble(vote_average);
-        parcel.writeString(title);
-        parcel.writeDouble(popularity);
-        parcel.writeString(poster_path);
-        parcel.writeString(original_language);
-        parcel.writeString(original_title);
-        parcel.writeString(backdrop_path);
-        parcel.writeByte((byte) (adult ? 1 : 0));
-        parcel.writeString(overview);
-        parcel.writeString(release_date);
-    }
-
-    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
-        @Override
-        public Movie createFromParcel(Parcel in) {
-            return new Movie(in);
-        }
-
-        @Override
-        public Movie[] newArray(int size) {
-            return new Movie[size];
-        }
-    };
 
     protected Movie(Parcel in) {
         vote_count = in.readInt();
@@ -90,10 +64,49 @@ public class Movie implements Parcelable {
         adult = in.readByte() != 0;
         overview = in.readString();
         release_date = in.readString();
+        runTime = in.readInt();
+        favorite = in.readByte() != 0;
+        trailers = in.createTypedArrayList(Trailer.CREATOR);
+        reviews = in.createTypedArrayList(Review.CREATOR);
     }
 
-    public Movie() {
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(vote_count);
+        dest.writeInt(id);
+        dest.writeByte((byte) (video ? 1 : 0));
+        dest.writeDouble(vote_average);
+        dest.writeString(title);
+        dest.writeDouble(popularity);
+        dest.writeString(poster_path);
+        dest.writeString(original_language);
+        dest.writeString(original_title);
+        dest.writeString(backdrop_path);
+        dest.writeByte((byte) (adult ? 1 : 0));
+        dest.writeString(overview);
+        dest.writeString(release_date);
+        dest.writeInt(runTime);
+        dest.writeByte((byte) (favorite ? 1 : 0));
+        dest.writeTypedList(trailers);
+        dest.writeTypedList(reviews);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 
     public int getVote_count() {
         return vote_count;
@@ -205,5 +218,37 @@ public class Movie implements Parcelable {
 
     public void setGenre_ids(List<Integer> genre_ids) {
         this.genre_ids = genre_ids;
+    }
+
+    public int getRunTime() {
+        return runTime;
+    }
+
+    public void setRunTime(int runTime) {
+        this.runTime = runTime;
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
+    public List<Trailer> getTrailers() {
+        return trailers;
+    }
+
+    public void setTrailers(List<Trailer> trailers) {
+        this.trailers = trailers;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
     }
 }

@@ -17,8 +17,8 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 
 import com.lance.popmovies.R;
-import com.lance.popmovies.db.Movie;
-import com.lance.popmovies.db.MovieLab;
+import com.lance.popmovies.bean.Movie;
+import com.lance.popmovies.bean.MovieLab;
 import com.lance.popmovies.ui.fragment.DetailFragment;
 import com.squareup.picasso.Picasso;
 
@@ -141,7 +141,7 @@ public class DetailPagerActivity extends AppCompatActivity {
                         + mMovie.getTitle()
                         + getString(R.string.share_release_date)
                         + mMovie.getRelease_date()
-                        + getString(R.string.share_overview)
+//                        + getString(R.string.share_overview)
                         + mMovie.getOverview())
                 .setChooserTitle(title)
                 .startChooser();

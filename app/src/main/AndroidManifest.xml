@@ -23,10 +23,15 @@
         </activity>
 
         <activity
-            android:name=".ui.activity.DetailPagerActivity"
+            android:name=".ui.activity.DetailActivity"
             android:parentActivityName=".ui.activity.MainActivity"
             android:theme="@style/DetailTheme">
         </activity>
+
+        <provider
+            android:authorities="com.lance.popmovies"
+            android:name=".data.MovieProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

@@ -3,65 +3,53 @@ package com.lance.popmovies.utils;
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
 
-import com.lance.popmovies.db.Movie;
-import com.lance.popmovies.db.MovieLab;
-import com.lance.popmovies.network.okhttp.NetworkUtil;
+import com.lance.popmovies.bean.Movie;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Administrator on 2017/9/16 0016.
  */
 
-public class MainLoader extends AsyncTaskLoader<Void> {
+public class MainLoader extends AsyncTaskLoader<List<Movie>> {
 
-    private String mRequestType;
+    private int mRequestType;
 
-    public MainLoader(Context context, String requestType) {
+    private List<Movie> mMovies;
+
+    public MainLoader(Context context, int requestType) {
         super(context);
         mRequestType = requestType;
     }
 
     @Override
     protected void onStartLoading() {
-        forceLoad();
+        if (mMovies != null) {
+            deliverResult(mMovies);
+        } else {
+            forceLoad();
+        }
     }
 
     @Override
-    public Void loadInBackground() {
-        String responseData = NetworkUtil.sendRequestWithOkHttp(mRequestType);
-
-        MovieLab movieLab = MovieLab.get(getContext());
-        movieLab.setMovieList(parseJSON(responseData));
-//        return movieLab.getMovieList();
-        return null;
+    public List<Movie> loadInBackground() {
+        if (mRequestType == 2) {
+            mMovies = MovieListUtils.loadMovieListFromLocal(getContext(), mRequestType);
+        } else {
+            if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
+                mMovies = MovieListUtils.loadMovieListFromNet(getContext(), mRequestType);
+            } else {
+                mMovies = MovieListUtils.loadMovieListFromLocal(getContext(), mRequestType);
+            }
+        }
+        return mMovies;
     }
 
-    private List<Movie> parseJSON(String jsonData) {
-        List<Movie> movies = new ArrayList<>();
-        try {
-            JSONObject jsonObject = new JSONObject(jsonData);
-            JSONArray jsonArray = jsonObject.getJSONArray("results");
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject movieObject = jsonArray.getJSONObject(i);
-                Movie movie = new Movie();
-                movie.setId(movieObject.getInt("id"));
-                movie.setTitle(movieObject.getString("title"));
-                movie.setBackdrop_path(movieObject.getString("backdrop_path"));
-                movie.setOverview(movieObject.getString("overview"));
-                movie.setVote_average(movieObject.getDouble("vote_average"));
-                movie.setRelease_date(movieObject.getString("release_date"));
-                movie.setPoster_path(movieObject.getString("poster_path"));
-                movies.add(movie);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+    @Override
+    public void deliverResult(List<Movie> data) {
+        mMovies = data;
+        if (isStarted()) {
+            super.deliverResult(data);
         }
-        return movies;
     }
 }
