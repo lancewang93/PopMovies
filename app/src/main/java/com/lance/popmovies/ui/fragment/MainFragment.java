@@ -1,7 +1,9 @@
 package com.lance.popmovies.ui.fragment;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -25,11 +27,12 @@ import android.widget.TextView;
 
 import com.lance.popmovies.R;
 import com.lance.popmovies.bean.Movie;
+import com.lance.popmovies.sync.SyncUtils;
 import com.lance.popmovies.ui.activity.DetailActivity;
 import com.lance.popmovies.ui.adapter.MainAdapter;
 import com.lance.popmovies.utils.MainLoader;
 import com.lance.popmovies.utils.NetworkUtils;
-import com.lance.popmovies.utils.SharedPreferenceUtils;
+import com.lance.popmovies.utils.PreferenceUtils;
 
 import java.util.List;
 
@@ -40,7 +43,8 @@ import java.util.List;
 public class MainFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<List<Movie>>,
         MainAdapter.ListItemClickListener,
-        SwipeRefreshLayout.OnRefreshListener {
+        SwipeRefreshLayout.OnRefreshListener,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     private RecyclerView mMainRecyclerView;
     private MainAdapter mMainAdapter;
@@ -50,12 +54,17 @@ public class MainFragment extends Fragment implements
     private TextView mErrorTextView;
     private ContentLoadingProgressBar mMainLoading;
 
+    private int mRequestType;
+
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         //想让Fragment中的onCreateOptionsMenu生效必须先调用setHasOptionsMenu方法
         setHasOptionsMenu(true);
+        mRequestType = PreferenceUtils.getMainSortBy(getContext());
     }
 
     @Nullable
@@ -76,19 +85,32 @@ public class MainFragment extends Fragment implements
         mMainAdapter = new MainAdapter(view.getContext(), this);
         mMainRecyclerView.setAdapter(mMainAdapter);
 
-        int requestType = SharedPreferenceUtils.getMainSortBy(view.getContext());
-        initData(requestType);
+        initData();
+
+        SyncUtils.scheduleChargingReminder(view.getContext());
         return view;
     }
 
-    private void initData(int requestType) {
+    @Override
+    public void onResume() {
+        PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onDestroy() {
+        PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
+        super.onDestroy();
+    }
+
+    private void initData() {
         if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
             showSuccessView();
-//            if (requestType == 2) {
-                getLoaderManager().restartLoader(requestType, null, this);
-//            } else {
-//                getLoaderManager().initLoader(requestType, null, this);
-//            }
+            if (mRequestType == 2) {
+                getLoaderManager().restartLoader(mRequestType, null, this);
+            } else {
+                getLoaderManager().initLoader(mRequestType, null, this);
+            }
         } else {
             showErrorView();
         }
@@ -137,12 +159,11 @@ public class MainFragment extends Fragment implements
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(), R.array.sort_order, android.R.layout.simple_spinner_dropdown_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        int requestType = SharedPreferenceUtils.getMainSortBy(getContext());
-        spinner.setSelection(requestType);
+        spinner.setSelection(mRequestType);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                SharedPreferenceUtils.setMainSortBy(view.getContext(), i);
+                PreferenceUtils.setMainSortBy(view.getContext(), i);
                 if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
                     onSortOderChange(i);
                 } else {
@@ -183,8 +204,15 @@ public class MainFragment extends Fragment implements
 
     @Override
     public void onRefresh() {
-        int requestType = SharedPreferenceUtils.getMainSortBy(getContext());
-        initData(requestType);
+        initData();
         mMainRefresh.setRefreshing(false);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (PreferenceUtils.KEY_MAIN_SORT_BY.equals(key)) {
+            mRequestType = PreferenceUtils.getMainSortBy(getContext());
+            initData();
+        }
     }
 }

@@ -105,8 +105,16 @@ public class MovieListUtils {
         return JSONDataUtils.parseJSONDataToReviewList(jsonData);
     }
 
-    //存储电影列表至本地(流行、高分、收藏)
-    public static boolean saveMovieListToLocal(Context context, String movieType, List<Movie> movies) {
+    //存储电影列表至本地(流行、高分)
+    public static boolean saveMovieListToLocal(Context context, String movieType) {
+        List<Movie> movies = new ArrayList<>();
+
+        if (movieType.equals(context.getString(R.string.popular))) {
+            movies = loadMovieListFromNet(context, 0);
+        } else if (movieType.equals(context.getString(R.string.top_rated))) {
+            movies = loadMovieListFromNet(context, 1);
+        }
+
         if (movies != null && !movies.isEmpty()) {
             List<ContentValues> valueList = new ArrayList<>();
             for (int i = 0; i < movies.size(); i++) {
