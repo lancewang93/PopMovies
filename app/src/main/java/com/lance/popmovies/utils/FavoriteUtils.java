@@ -43,9 +43,9 @@ public class FavoriteUtils {
         ContentResolver resolver = context.getContentResolver();
         Uri uri = resolver.insert(MovieContract.FavoriteEntry.CONTENT_URI, value);
         if (Long.valueOf(uri.getLastPathSegment()) >= 0) {
-            Log.d("tag", "work");
+            Log.d("tag", "favorite work");
         } else {
-            Log.d("tag", "noWork");
+            Log.d("tag", "favorite noWork");
         }
     }
 

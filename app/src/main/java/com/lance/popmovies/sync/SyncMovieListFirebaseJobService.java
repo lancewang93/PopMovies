@@ -28,9 +28,7 @@ public class SyncMovieListFirebaseJobService extends JobService {
             protected void onPostExecute(Object o) {
                 jobFinished(jobParameters, false);
             }
-        };
-
-        mBackgroundAsyncTask.execute();
+        }.execute();
         return true;
     }
 

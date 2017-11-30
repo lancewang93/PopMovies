@@ -1,5 +1,6 @@
 package com.lance.popmovies.network.manager;
 
+import com.lance.popmovies.Key;
 import com.lance.popmovies.bean.Movie;
 import com.lance.popmovies.network.service.TheMovieDbService;
 
@@ -17,7 +18,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RetrofitManager {
 
     public static final String BASE_THEMOVIEDB_URL = "https://api.themoviedb.org/3/movie/";
-    public static final String API_KEY = "5db64b163c2caf966135d7f7e8bb660b";
 
     private final TheMovieDbService mTheMovieDbService;
 
@@ -35,14 +35,14 @@ public class RetrofitManager {
     }
 
     public Observable<List<Movie>> getPopular() {
-        return mTheMovieDbService.getPopular(API_KEY);
+        return mTheMovieDbService.getPopular(Key.TheMovieDbKey);
     }
 
     public Observable<List<Movie>> getTopRated() {
-        return mTheMovieDbService.getTopRated(API_KEY);
+        return mTheMovieDbService.getTopRated(Key.TheMovieDbKey);
     }
 
     public Observable<Movie> getMovieDetail(int id) {
-        return mTheMovieDbService.getMovieDetail(id, API_KEY);
+        return mTheMovieDbService.getMovieDetail(id, Key.TheMovieDbKey);
     }
 }

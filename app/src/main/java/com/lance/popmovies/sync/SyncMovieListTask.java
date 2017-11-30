@@ -1,7 +1,7 @@
 package com.lance.popmovies.sync;
 
 import android.content.Context;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.lance.popmovies.R;
 import com.lance.popmovies.utils.MovieListUtils;
@@ -24,19 +24,19 @@ public class SyncMovieListTask {
         }
     }
 
-    private static void syncPopularMovies(Context context) {
+    synchronized private static void syncPopularMovies(Context context) {
         if (MovieListUtils.saveMovieListToLocal(context, context.getString(R.string.popular))) {
-            Toast.makeText(context, "Sync Popular Movies is done", Toast.LENGTH_SHORT).show();
+            Log.d("tag", "syncPopularMovies: " + "Sync Popular Movies is done");
         } else {
-            Toast.makeText(context, "Sync Popular Movies isn't done", Toast.LENGTH_SHORT).show();
+            Log.d("tag", "syncPopularMovies: " + "Sync Popular Movies is failed");
         }
     }
 
-    private static void syncTopRatedMovies(Context context) {
+    synchronized private static void syncTopRatedMovies(Context context) {
         if (MovieListUtils.saveMovieListToLocal(context, context.getString(R.string.top_rated))) {
-            Toast.makeText(context, "Sync Popular Movies is done", Toast.LENGTH_SHORT).show();
+            Log.d("tag", "syncTopRatedMovies: " + "Sync Top Rated Movies is done");
         } else {
-            Toast.makeText(context, "Sync Popular Movies isn't done", Toast.LENGTH_SHORT).show();
+            Log.d("tag", "syncTopRatedMovies: " + "Sync Top Rated Movies is failed");
         }
     }
 

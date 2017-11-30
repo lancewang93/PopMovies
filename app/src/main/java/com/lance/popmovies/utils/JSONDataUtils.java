@@ -20,6 +20,10 @@ public class JSONDataUtils {
     //将网上获取的JSON电影列表数据转换成电影列表
     public static List<Movie> parseJSONDataToMovieList(String jsonData) {
         List<Movie> movies = new ArrayList<>();
+        //防止网上获取的json数据为空
+        if (jsonData == null) {
+            return movies;
+        }
         try {
             JSONObject jsonObject = new JSONObject(jsonData);
             JSONArray jsonArray = jsonObject.getJSONArray("results");

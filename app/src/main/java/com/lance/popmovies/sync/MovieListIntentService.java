@@ -1,7 +1,6 @@
 package com.lance.popmovies.sync;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 
@@ -15,15 +14,8 @@ public class MovieListIntentService extends IntentService {
         super("MovieListIntentService");
     }
 
-    public static Intent newIntentService(Context context, String action) {
-        Intent intent = new Intent(context, MovieListIntentService.class);
-        intent.setAction(action);
-        return intent;
-    }
-
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        String action = intent.getAction();
-        SyncMovieListTask.executeTask(this, action);
+        SyncMovieListTask.executeTask(this, intent.getAction());
     }
 }

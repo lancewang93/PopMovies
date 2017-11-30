@@ -4,7 +4,7 @@
     <string name="action_top_rated">Top Rated Movies</string>
     <string name="fail_load">Failed to load, Please try again</string>
     <string name="share_title">PopMovies share</string>
-    <string name="share_from">From PopMovies\'s share: </string>
+    <string name="share_from">From PopMovies\'s share:  </string>
     <string name="share_vote_average">, Vote Average: </string>
     <string name="share_release_date">，Release Date：</string>
     <string name="share_trailer">，Trailer：https://www.youtube.com/watch?v=</string>
