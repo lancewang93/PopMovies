@@ -29,8 +29,16 @@ public class FavoriteUtils {
 //        return sInstance;
 //    }
 
+    public static void dealWithFavorite(Context context, Movie movie) {
+        if (isFavorite(context, movie)) {
+            cancelMovieToFavorite(context, movie);
+        } else {
+            saveMovieToFavorite(context, movie);
+        }
+    }
+
     //收藏电影
-    public static void saveMovieToFavorite(Context context, Movie movie) {
+    private static void saveMovieToFavorite(Context context, Movie movie) {
         ContentValues value = new ContentValues();
         value.put(MovieContract.COLUMN_MOVIE_ID, movie.getId());
         value.put(MovieContract.COLUMN_MOVIE_TITLE, movie.getTitle());
@@ -50,7 +58,7 @@ public class FavoriteUtils {
     }
 
     //取消收藏
-    public static void cancelMovieToFavorite(Context context, Movie movie) {
+    private static void cancelMovieToFavorite(Context context, Movie movie) {
         ContentResolver resolver = context.getContentResolver();
         Uri movieIdUri = MovieContract.FavoriteEntry.CONTENT_URI.buildUpon().appendPath(movie.getId() + "").build();
         resolver.delete(movieIdUri, null, null);

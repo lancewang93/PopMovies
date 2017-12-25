@@ -5,21 +5,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.ContentLoadingProgressBar;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -47,10 +41,7 @@ public class DetailFragment extends Fragment implements
 
     public static final String ARG_MOVIE = "movie";
 
-    private CollapsingToolbarLayout mCollapsingToolbarLayout;
-    private Toolbar mToolbar;
     private ImageView mBackdropImageView;
-
     private TextView mTitleTextView;
     private ImageView mPosterImageView;
     private TextView mReleaseDateTextView;
@@ -64,6 +55,7 @@ public class DetailFragment extends Fragment implements
     private TrailerAdapter mTrailerAdapter;
     private RecyclerView mReviewRecyclerView;
     private ReviewAdapter mReviewAdapter;
+    private FloatingActionButton mDetailFloatingActionButton;
 
     private Movie mMovie;
     private boolean isFavorite;
@@ -80,7 +72,6 @@ public class DetailFragment extends Fragment implements
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        setHasOptionsMenu(true);
         mMovie = getArguments().getParcelable(ARG_MOVIE);
     }
 
@@ -91,8 +82,6 @@ public class DetailFragment extends Fragment implements
         mErrorTextView = view.findViewById(R.id.tv_error);
         mDetailLoading = view.findViewById(R.id.pb_detail_loading);
 
-        mCollapsingToolbarLayout = view.findViewById(R.id.collapsing_toolbar);
-        mToolbar = view.findViewById(R.id.toolbar);
         mBackdropImageView = view.findViewById(R.id.iv_detail_backdrop);
         mTitleTextView = view.findViewById(R.id.tv_detail_title);
         mPosterImageView = view.findViewById(R.id.iv_detail_poster);
@@ -103,6 +92,7 @@ public class DetailFragment extends Fragment implements
         mTrailerAdapter = new TrailerAdapter(getContext(), this);
         mReviewRecyclerView = view.findViewById(R.id.rcv_detail_review);
         mReviewAdapter = new ReviewAdapter(getContext());
+        mDetailFloatingActionButton = view.findViewById(R.id.fab_detail);
 
         if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
             initDetail();
@@ -113,15 +103,6 @@ public class DetailFragment extends Fragment implements
         return view;
     }
 
-    private void initCollapsingToolBar() {
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
-        activity.setSupportActionBar(mToolbar);
-        ActionBar actionBar = activity.getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
-        mCollapsingToolbarLayout.setTitleEnabled(true);
-    }
 
     private void initDetail() {
         getActivity().getSupportLoaderManager().initLoader(DETAIL_MOVIE_LOADER, null, this);
@@ -150,7 +131,6 @@ public class DetailFragment extends Fragment implements
             isFavorite = data.isFavorite();
         }
 
-        initCollapsingToolBar();
         mMovie = data;
 
         Picasso.with(getActivity())
@@ -200,43 +180,42 @@ public class DetailFragment extends Fragment implements
         mVoteAverageTextView.setVisibility(View.INVISIBLE);
         mOverviewTextView.setVisibility(View.INVISIBLE);
         mErrorTextView.setVisibility(View.VISIBLE);
+        mDetailFloatingActionButton.setVisibility(View.INVISIBLE);
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.detail, menu);
-        if (isFavorite) {
-            menu.findItem(R.id.action_favorite).setIcon(R.drawable.ic_action_favorite);
-        } else {
-            menu.findItem(R.id.action_favorite).setIcon(R.drawable.ic_action_unfavorite);
-        }
-    }
+//    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        super.onCreateOptionsMenu(menu, inflater);
+//        inflater.inflate(R.menu.detail, menu);
+//        if (isFavorite) {
+//            menu.findItem(R.id.action_favorite).setIcon(R.drawable.ic_action_favorite);
+//        } else {
+//            menu.findItem(R.id.action_favorite).setIcon(R.drawable.ic_action_unfavorite);
+//        }
+//    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_favorite:
-                favorite();
-                if (isFavorite) {
-                    FavoriteUtils.cancelMovieToFavorite(getContext(), mMovie);
-                    item.setIcon(R.drawable.ic_action_unfavorite);
-                    isFavorite = false;
-                } else {
-                    FavoriteUtils.saveMovieToFavorite(getContext(), mMovie);
-                    item.setIcon(R.drawable.ic_action_favorite);
-                    isFavorite = true;
-                }
-                return true;
-            case R.id.action_share:
-                share();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        switch (item.getItemId()) {
+//            case R.id.action_favorite:
+//                favorite();
+//                if (isFavorite) {
+//                    item.setIcon(R.drawable.ic_action_unfavorite);
+//                    isFavorite = false;
+//                } else {
+//                    item.setIcon(R.drawable.ic_action_favorite);
+//                    isFavorite = true;
+//                }
+//                return true;
+//            case R.id.action_share:
+//                share();
+//                return true;
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     private void favorite() {
-
+        FavoriteUtils.dealWithFavorite(getContext(), mMovie);
     }
 
     private void share() {
