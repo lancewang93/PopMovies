@@ -5,7 +5,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
@@ -16,6 +15,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,15 +47,20 @@ public class DetailFragment extends Fragment implements
     private TextView mReleaseDateTextView;
     private TextView mVoteAverageTextView;
     private TextView mOverviewTextView;
+    private ImageButton mFavoriteImageButton;
+    private ImageButton mShareImageButton;
 
     private TextView mErrorTextView;
     private ContentLoadingProgressBar mDetailLoading;
 
+    private ImageView mTrailerLineImageView;
+    private TextView mTrailerLabelTextView;
     private RecyclerView mTrailerRecyclerView;
     private TrailerAdapter mTrailerAdapter;
+    private ImageView mReviewLineImageView;
+    private TextView mReviewLabelTextView;
     private RecyclerView mReviewRecyclerView;
     private ReviewAdapter mReviewAdapter;
-    private FloatingActionButton mDetailFloatingActionButton;
 
     private Movie mMovie;
     private boolean isFavorite;
@@ -88,11 +93,16 @@ public class DetailFragment extends Fragment implements
         mReleaseDateTextView = view.findViewById(R.id.tv_detail_release_date);
         mVoteAverageTextView = view.findViewById(R.id.tv_detail_vote_average);
         mOverviewTextView = view.findViewById(R.id.tv_detail_overview);
+        mTrailerLineImageView = view.findViewById(R.id.iv_trailer_line);
+        mTrailerLabelTextView = view.findViewById(R.id.tv_trailer_label);
         mTrailerRecyclerView = view.findViewById(R.id.rcv_detail_trailer);
         mTrailerAdapter = new TrailerAdapter(getContext(), this);
+        mReviewLineImageView = view.findViewById(R.id.iv_review_line);
+        mReviewLabelTextView = view.findViewById(R.id.tv_review_label);
         mReviewRecyclerView = view.findViewById(R.id.rcv_detail_review);
         mReviewAdapter = new ReviewAdapter(getContext());
-        mDetailFloatingActionButton = view.findViewById(R.id.fab_detail);
+        mFavoriteImageButton = view.findViewById(R.id.ib_favorite);
+        mShareImageButton = view.findViewById(R.id.ib_share);
 
         if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
             initDetail();
@@ -105,7 +115,7 @@ public class DetailFragment extends Fragment implements
 
 
     private void initDetail() {
-        getActivity().getSupportLoaderManager().initLoader(DETAIL_MOVIE_LOADER, null, this);
+        getActivity().getSupportLoaderManager().restartLoader(DETAIL_MOVIE_LOADER, null, this);
     }
 
     @Override
@@ -127,8 +137,11 @@ public class DetailFragment extends Fragment implements
 
     @Override
     public void onLoadFinished(Loader<Movie> loader, Movie data) {
-        if (data.isFavorite()) {
-            isFavorite = data.isFavorite();
+        isFavorite = data.isFavorite();
+        if (isFavorite) {
+            mFavoriteImageButton.setImageResource(R.drawable.ic_action_favorite);
+        } else {
+            mFavoriteImageButton.setImageResource(R.drawable.ic_action_unfavorite);
         }
 
         mMovie = data;
@@ -144,8 +157,30 @@ public class DetailFragment extends Fragment implements
         mReleaseDateTextView.setText(mMovie.getRelease_date());
         mVoteAverageTextView.setText(String.format("%2.1f", mMovie.getVote_average()));
         mOverviewTextView.setText(mMovie.getOverview());
+        mFavoriteImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                favorite();
+                if (isFavorite) {
+                    mFavoriteImageButton.setImageResource(R.drawable.ic_action_unfavorite);
+                    isFavorite = false;
+                } else {
+                    mFavoriteImageButton.setImageResource(R.drawable.ic_action_favorite);
+                    isFavorite = true;
+                }
+            }
+        });
+        mShareImageButton.setImageResource(R.drawable.ic_action_share);
+        mShareImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                share();
+            }
+        });
 
         if (data.getTrailers() != null && !data.getTrailers().isEmpty()) {
+            mTrailerLineImageView.setVisibility(View.VISIBLE);
+            mTrailerLabelTextView.setVisibility(View.VISIBLE);
             LinearLayoutManager trailerLM = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
             mTrailerRecyclerView.setLayoutManager(trailerLM);
             mTrailerRecyclerView.setHasFixedSize(true);
@@ -156,6 +191,8 @@ public class DetailFragment extends Fragment implements
         }
 
         if (data.getReviews() != null && !data.getReviews().isEmpty()) {
+            mReviewLineImageView.setVisibility(View.VISIBLE);
+            mReviewLabelTextView.setVisibility(View.VISIBLE);
             LinearLayoutManager reviewLM = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
             mReviewRecyclerView.setLayoutManager(reviewLM);
             mReviewRecyclerView.setHasFixedSize(true);
@@ -179,40 +216,10 @@ public class DetailFragment extends Fragment implements
         mReleaseDateTextView.setVisibility(View.INVISIBLE);
         mVoteAverageTextView.setVisibility(View.INVISIBLE);
         mOverviewTextView.setVisibility(View.INVISIBLE);
+        mFavoriteImageButton.setVisibility(View.INVISIBLE);
+        mShareImageButton.setVisibility(View.INVISIBLE);
         mErrorTextView.setVisibility(View.VISIBLE);
-        mDetailFloatingActionButton.setVisibility(View.INVISIBLE);
     }
-
-//    @Override
-//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        super.onCreateOptionsMenu(menu, inflater);
-//        inflater.inflate(R.menu.detail, menu);
-//        if (isFavorite) {
-//            menu.findItem(R.id.action_favorite).setIcon(R.drawable.ic_action_favorite);
-//        } else {
-//            menu.findItem(R.id.action_favorite).setIcon(R.drawable.ic_action_unfavorite);
-//        }
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.action_favorite:
-//                favorite();
-//                if (isFavorite) {
-//                    item.setIcon(R.drawable.ic_action_unfavorite);
-//                    isFavorite = false;
-//                } else {
-//                    item.setIcon(R.drawable.ic_action_favorite);
-//                    isFavorite = true;
-//                }
-//                return true;
-//            case R.id.action_share:
-//                share();
-//                return true;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
 
     private void favorite() {
         FavoriteUtils.dealWithFavorite(getContext(), mMovie);

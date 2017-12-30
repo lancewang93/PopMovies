@@ -1,6 +1,6 @@
 package com.lance.popmovies.ui.fragment;
 
-import android.content.Intent;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,6 +14,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +29,6 @@ import android.widget.TextView;
 import com.lance.popmovies.R;
 import com.lance.popmovies.bean.Movie;
 import com.lance.popmovies.sync.SyncUtils;
-import com.lance.popmovies.ui.activity.DetailActivity;
 import com.lance.popmovies.ui.adapter.MainAdapter;
 import com.lance.popmovies.utils.MainLoader;
 import com.lance.popmovies.utils.NetworkUtils;
@@ -56,7 +56,17 @@ public class MainFragment extends Fragment implements
 
     private int mRequestType;
 
+    private Callbacks mCallbacks;
 
+    public interface Callbacks {
+        void onMovieSelected(Movie movie);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallbacks = (Callbacks) context;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -79,7 +89,27 @@ public class MainFragment extends Fragment implements
         mMainRefresh.setOnRefreshListener(this);
 
         mMainRecyclerView = view.findViewById(R.id.rcv_main);
-        LinearLayoutManager layoutManager = new GridLayoutManager(getContext(), 2);
+        LinearLayoutManager layoutManager;
+        DisplayMetrics metric = getResources().getDisplayMetrics();
+        int width = metric.widthPixels;
+        int height = metric.heightPixels;
+        int widthDp = Math.round(width / (metric.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+        int heightDp = Math.round(height / (metric.ydpi / DisplayMetrics.DENSITY_DEFAULT));
+
+        int dp;
+        if (widthDp >= heightDp) {
+            dp = heightDp;
+        } else {
+            dp = widthDp;
+        }
+        //有些最小是600dp的计算出来是552dp
+        //所以只能大于550，不然应该是大于等于600
+        //比如7_WSVGA_Tablet
+        if (dp >= 550) {
+            layoutManager = new GridLayoutManager(getContext(), 3);
+        } else {
+            layoutManager = new GridLayoutManager(getContext(), 2);
+        }
         mMainRecyclerView.setLayoutManager(layoutManager);
         mMainRecyclerView.setHasFixedSize(true);
         mMainAdapter = new MainAdapter(view.getContext(), this);
@@ -95,6 +125,12 @@ public class MainFragment extends Fragment implements
     public void onResume() {
         PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         super.onResume();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
     }
 
     @Override
@@ -196,10 +232,11 @@ public class MainFragment extends Fragment implements
     @Override
     public void onListItemClick(int clickedItemIndex) {
         //单页面
-        Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
+        //Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
         //滑动页面
         //Intent intent = DetailPagerActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
-        startActivity(intent);
+        //startActivity(intent);
+        mCallbacks.onMovieSelected(mMovieList.get(clickedItemIndex));
     }
 
     @Override
