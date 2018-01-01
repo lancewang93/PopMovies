@@ -116,15 +116,17 @@ public class MainFragment extends Fragment implements
         mMainRecyclerView.setAdapter(mMainAdapter);
 
         initData();
-
         SyncUtils.scheduleChargingReminder(view.getContext());
         return view;
     }
 
     @Override
     public void onResume() {
-        PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         super.onResume();
+        PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
+        if (mRequestType == 2) {
+            getLoaderManager().restartLoader(mRequestType, null, this);
+        }
     }
 
     @Override
@@ -140,13 +142,41 @@ public class MainFragment extends Fragment implements
     }
 
     private void initData() {
-        if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
-            showSuccessView();
-            if (mRequestType == 2) {
+        if (mRequestType != 2) {
+            if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
+                showSuccessView();
                 getLoaderManager().restartLoader(mRequestType, null, this);
             } else {
-                getLoaderManager().initLoader(mRequestType, null, this);
+                showErrorView();
             }
+        } else {
+            getLoaderManager().restartLoader(mRequestType, null, this);
+        }
+    }
+
+    @Override
+    public Loader onCreateLoader(int requestType, Bundle args) {
+        mMainRecyclerView.setVisibility(View.INVISIBLE);
+        mMainLoading.setVisibility(View.VISIBLE);
+        return new MainLoader(getContext(), requestType);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> movies) {
+        mMovieList = movies;
+        updateUI();
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader) {
+        mMainAdapter.refreshMovieList(null);
+    }
+
+    private void updateUI() {
+        mMainLoading.setVisibility(View.INVISIBLE);
+        if (mMovieList != null && !mMovieList.isEmpty()) {
+            mMainAdapter.refreshMovieList(mMovieList);
+            showSuccessView();
         } else {
             showErrorView();
         }
@@ -163,30 +193,6 @@ public class MainFragment extends Fragment implements
     }
 
     @Override
-    public Loader onCreateLoader(int requestType, Bundle args) {
-        mMainRecyclerView.setVisibility(View.INVISIBLE);
-        mMainLoading.setVisibility(View.VISIBLE);
-        return new MainLoader(getContext(), requestType);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> movies) {
-        mMainLoading.setVisibility(View.INVISIBLE);
-        mMovieList = movies;
-        if (mMovieList != null && !mMovieList.isEmpty()) {
-            showSuccessView();
-            mMainAdapter.refreshMovieList(mMovieList);
-        } else {
-            showErrorView();
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader loader) {
-        mMainAdapter.refreshMovieList(null);
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main, menu);
 
@@ -200,11 +206,7 @@ public class MainFragment extends Fragment implements
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 PreferenceUtils.setMainSortBy(view.getContext(), i);
-                if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
-                    onSortOderChange(i);
-                } else {
-                    showErrorView();
-                }
+                onSortOderChange(i);
             }
 
             @Override
@@ -231,11 +233,6 @@ public class MainFragment extends Fragment implements
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
-        //单页面
-        //Intent intent = DetailActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
-        //滑动页面
-        //Intent intent = DetailPagerActivity.newIntent(getContext(), mMovieList.get(clickedItemIndex));
-        //startActivity(intent);
         mCallbacks.onMovieSelected(mMovieList.get(clickedItemIndex));
     }
 

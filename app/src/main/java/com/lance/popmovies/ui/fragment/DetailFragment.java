@@ -1,6 +1,8 @@
 package com.lance.popmovies.ui.fragment;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -28,6 +30,8 @@ import com.lance.popmovies.utils.DetailLoader;
 import com.lance.popmovies.utils.FavoriteUtils;
 import com.lance.popmovies.utils.NetworkUtils;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/9/12 0012.
@@ -120,9 +124,19 @@ public class DetailFragment extends Fragment implements
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
+        //Build the intent;
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("https://www.youtube.com/watch?v=" + mMovie.getTrailers().get(clickedItemIndex).getVideoKey()));
-        startActivity(intent);
+        //Verify the intent
+        PackageManager packageManager = getActivity().getPackageManager();
+        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+        boolean isIntentSafe = activities.size() > 0;
+        //Start an activity if it's safe
+        if (isIntentSafe) {
+            startActivity(intent);
+        } else {
+            Toast.makeText(getContext(), "无可用程序(Youtube或者浏览器)执行此动作", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -222,7 +236,12 @@ public class DetailFragment extends Fragment implements
     }
 
     private void favorite() {
-        FavoriteUtils.dealWithFavorite(getContext(), mMovie);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                FavoriteUtils.dealWithFavorite(getContext(), mMovie);
+            }
+        }).start();
     }
 
     private void share() {
