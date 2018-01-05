@@ -82,8 +82,5 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("ALTER  TABLE " + PopularEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("ALTER  TABLE " + TopRatedEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("ALTER  TABLE " + FavoriteEntry.TABLE_NAME);
     }
 }

@@ -25,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lance.popmovies.R;
 import com.lance.popmovies.bean.Movie;
@@ -142,16 +143,17 @@ public class MainFragment extends Fragment implements
     }
 
     private void initData() {
-        if (mRequestType != 2) {
-            if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
-                showSuccessView();
-                getLoaderManager().restartLoader(mRequestType, null, this);
-            } else {
-                showErrorView();
-            }
-        } else {
-            getLoaderManager().restartLoader(mRequestType, null, this);
-        }
+        getLoaderManager().restartLoader(mRequestType, null, this);
+//        if (mRequestType != 2) {
+//            if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
+//                showSuccessView();
+//                getLoaderManager().initLoader(mRequestType, null, this);
+//            } else {
+//                showErrorView();
+//            }
+//        } else {
+//            getLoaderManager().restartLoader(mRequestType, null, this);
+//        }
     }
 
     @Override
@@ -233,7 +235,11 @@ public class MainFragment extends Fragment implements
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
-        mCallbacks.onMovieSelected(mMovieList.get(clickedItemIndex));
+        if (NetworkUtils.isNetworkAvailableAndConnected(getContext())) {
+            mCallbacks.onMovieSelected(mMovieList.get(clickedItemIndex));
+        } else {
+            Toast.makeText(getContext(), "Network not available", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
